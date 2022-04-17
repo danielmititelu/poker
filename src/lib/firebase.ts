@@ -15,15 +15,11 @@ import {
     update
 } from "firebase/database";
 import { getAuth, signInAnonymously, connectAuthEmulator } from "firebase/auth";
-// import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
     apiKey: "AIzaSyA_6f2l7spzdFUDPgYjtHC_idN7MOrjMD8",
     authDomain: "poker-e8079.firebaseapp.com",
+    databaseURL: "https://poker-e8079-default-rtdb.europe-west1.firebasedatabase.app/",
     projectId: "poker-e8079",
     storageBucket: "poker-e8079.appspot.com",
     messagingSenderId: "934861521350",
@@ -39,30 +35,32 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const database = getDatabase(app);
-connectFirestoreEmulator(db, 'localhost', 8080);
-connectDatabaseEmulator(database, "localhost", 9000);
-connectAuthEmulator(auth, "http://localhost:9099");
 
-async function getUserId() {
-    await signInAnonymously(auth);
-    return auth.currentUser.uid;
+// connectFirestoreEmulator(db, 'localhost', 8080);
+// connectDatabaseEmulator(database, "localhost", 9000);
+// connectAuthEmulator(auth, "http://localhost:9099");
+
+export async function getUserId() {
+    var userCredentials = await signInAnonymously(auth);
+    return userCredentials.user.uid;
 }
 
 export async function createRoom(): Promise<string> {
     var uid = await getUserId();
     var room = await push(ref(database, 'rooms'), {
         owner: uid,
+        reveal: false
     });
     return room.key;
 }
 
-export async function joinRoom(roomId: string): Promise<void> {
+export async function joinRoom(roomId: string, playerName: string): Promise<void> {
     var uid = await getUserId();
     const playerRef = ref(database, `players/${uid}`);
     await set(playerRef, {
         userId: uid,
         roomId: roomId,
-        name: uid,
+        name: playerName,
         voted: false
     });
 
@@ -79,9 +77,9 @@ export async function subscribeTo(roomId: string,
         onRoomChanged(snapshot.val());
     });
 
-    var playersRef = query(ref(database, `players`),
+    var roomPlayersRef = query(ref(database, `players`),
          orderByChild('roomId'), equalTo(roomId));
-    var playerUnsub = onValue(playersRef, (snapshot) => {
+    var playerUnsub = onValue(roomPlayersRef, (snapshot) => {
         var players = Object.values(snapshot.val());
         onPlayerChanged(players);
     });
@@ -101,4 +99,21 @@ export async function vote(vote: string) {
         voted: true,
         vote: vote
     });
+}
+
+export async function revealCards(roomId: string) {
+    ref(database, `rooms/${roomId}`)
+    await update(ref(database, `rooms/${roomId}`), {
+        reveal: true
+    });
+}
+
+export async function startNewGame(roomId: string, players: any[]) {
+    const updates = {};
+    updates[`rooms/${roomId}/reveal`] = false;
+    players.forEach(player => {
+        updates[`players/${player.userId}/voted`] = false;
+        updates[`players/${player.userId}/vote`] = null;
+    });
+    await update(ref(database), updates);
 }

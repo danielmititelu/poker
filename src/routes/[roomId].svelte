@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Button from "../components/Button.svelte";
     import Card from "../components/card.svelte";
     import { page } from "$app/stores";
     import {
@@ -6,32 +7,54 @@
         joinRoom,
         subscribeTo,
         vote,
-    } from "./firebase";
+        revealCards,
+        startNewGame,
+        getUserId
+    } from "../lib/firebase";
     import { onDestroy, onMount } from "svelte";
+    import { playerName } from "../lib/stores";
 
-    var roomId = $page.params.roomId;
+    let roomId = $page.params.roomId;
+    let name = $playerName;
+    let uid = null;
+    let reveal = false;
+    let selectedCard = null;
 
-    let selectCard = (event: CustomEvent<string>): any => {
+    async function onSelectCard(event: CustomEvent<string>) {
         vote(event.detail);
     };
 
     function onRoomChange(room: any) {
-        console.log(room);
+        reveal = room.reveal;
     }
-    var players = [];
-    function onPlayersChange(receivedPlayers: any) {
-        console.log(receivedPlayers);
+
+    let players = [];
+    async function onPlayersChange(receivedPlayers: any) {
         if (!receivedPlayers) return;
-        var p = [];
+        if(uid == null) {
+            uid = await getUserId();
+        }
+
+        let p = [];
         receivedPlayers.forEach((player) => {
+            if (player.userId === uid) {
+                selectedCard = player.voted ? player.vote : null;
+            }
             p.push(player);
-            console.log(player);
         });
         players = p;
     }
 
+    function onRevealCards() {
+        revealCards(roomId);
+    }
+
+    function onStartNewGame() {
+        startNewGame(roomId, players);
+    }
+
     onMount(() => {
-        joinRoom(roomId);
+        joinRoom(roomId, name);
         subscribeTo(roomId, onRoomChange, onPlayersChange);
     });
 
@@ -42,27 +65,47 @@
 
 <div class="min-h-screen bg-slate-900 pt-4">
     <div
-        class="container outline-dashed m-auto
-                mb-4"
+        class="container outline-dashed mx-auto
+                mb-2"
     >
         {#each players as player}
-            <div class="text-white ml-2 flex">
-                <div>{player.name}</div>
-                {#if player.voted == false}
-                    <div class="ml-1">X</div>
+            <div class="text-white ml-2 flex ">
+                <div class="mr-1">{player.name}</div>
+                {#if reveal && player.voted}
+                    <div>{player.vote}</div>
+                {:else if player.voted}
+                    <div>✔️</div>
                 {:else}
-                    <div class="ml-1">{player.vote}</div>
+                    <div>❌</div>
                 {/if}
             </div>
         {/each}
     </div>
+    <div class="flex mb-2">
+        {#if reveal}
+            <Button class="mx-auto" disabled={false} on:click={onStartNewGame}>
+                Start new game
+            </Button>
+        {:else}
+            <Button class="mx-auto" disabled={false} on:click={onRevealCards}>
+                Reveal Cards
+            </Button>
+        {/if}
+    </div>
 
     <div class="container outline-dashed flex m-auto">
-        <Card value="1" on:click={selectCard} />
-        <Card value="2" on:click={selectCard} />
-        <Card value="3" on:click={selectCard} />
-        <Card value="5" on:click={selectCard} />
-        <Card value="7" on:click={selectCard} />
+        {#each ["1", "2", "3", "5", "7"] as value}
+            <Card
+                {value}
+                selected={selectedCard === value}
+                on:click={onSelectCard}
+            />
+        {/each}
+    </div>
+    <div class="flex">
+        <div class="text-white text-lg mx-auto">
+            {name}
+        </div>
     </div>
 </div>
 
