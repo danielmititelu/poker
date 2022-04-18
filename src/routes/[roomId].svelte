@@ -1,6 +1,6 @@
 <script lang="ts">
     import Button from "../components/Button.svelte";
-    import Card from "../components/card.svelte";
+    import Card from "../components/Card.svelte";
     import { page } from "$app/stores";
     import {
         unsubscribe,
