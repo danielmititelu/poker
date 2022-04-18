@@ -1,7 +1,7 @@
 <script lang="ts">
-    import Button from "../components/Button.svelte";
-    import { createRoom } from "../lib/firebase";
-    import { playerName } from "../lib/stores";
+    import Button from "$lib/components/Button.svelte";
+    import { createRoom } from "$lib/firebase";
+    import { playerName } from "$lib/stores";
     import { goto } from '$app/navigation';
 
     async function onCreateRoom() {
