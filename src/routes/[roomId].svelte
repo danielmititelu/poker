@@ -1,65 +1,59 @@
 <script lang="ts">
     import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
+    import NameInput from "$lib/components/NameInput.svelte";
     import { page } from "$app/stores";
     import {
-        unsubscribe,
         joinRoom,
         subscribeTo,
         vote,
         revealCards,
         startNewGame,
-        getUserId
+        getUserId,
+        changeName,
+        type Room,
     } from "../lib/firebase";
     import { onDestroy, onMount } from "svelte";
     import { playerName } from "../lib/stores";
+    import type { Unsubscribe } from "firebase/database";
 
     let roomId = $page.params.roomId;
     let name = $playerName;
     let uid = null;
     let reveal = false;
     let selectedCard = null;
-
-    async function onSelectCard(event: CustomEvent<string>) {
-        vote(event.detail);
-    };
-
-    function onRoomChange(room: any) {
-        reveal = room.reveal;
-    }
-
     let players = [];
-    async function onPlayersChange(receivedPlayers: any) {
-        if (!receivedPlayers) return;
-        if(uid == null) {
+
+    async function onRoomChange(room: Room) {
+        if (!room || !room.players) {
+            return;
+        }
+        reveal = room.reveal;
+        if (uid == null) {
             uid = await getUserId();
         }
 
-        let p = [];
-        receivedPlayers.forEach((player) => {
+        var p = [];
+        Object.values(room.players).forEach((player) => {
             if (player.userId === uid) {
                 selectedCard = player.voted ? player.vote : null;
             }
             p.push(player);
         });
+
         players = p;
     }
 
-    function onRevealCards() {
-        revealCards(roomId);
-    }
-
-    function onStartNewGame() {
-        startNewGame(roomId, players);
-    }
-
-    onMount(() => {
-        joinRoom(roomId, name);
-        subscribeTo(roomId, onRoomChange, onPlayersChange);
+    let unsubscribe: Unsubscribe;
+    onMount(async () => {
+        unsubscribe = subscribeTo(roomId, onRoomChange);
+        await joinRoom(roomId, $playerName);
     });
 
     onDestroy(() => {
-        unsubscribe();
+        if(unsubscribe) {
+            unsubscribe();
+        }
     });
 </script>
 
@@ -83,11 +77,19 @@
     </div>
     <div class="flex mb-2">
         {#if reveal}
-            <Button class="mx-auto" disabled={false} on:click={onStartNewGame}>
+            <Button
+                class="mx-auto"
+                disabled={false}
+                on:click={async () => await startNewGame(roomId, players)}
+            >
                 Start new game
             </Button>
         {:else}
-            <Button class="mx-auto" disabled={false} on:click={onRevealCards}>
+            <Button
+                class="mx-auto"
+                disabled={false}
+                on:click={async () => await revealCards(roomId)}
+            >
                 Reveal Cards
             </Button>
         {/if}
@@ -98,13 +100,19 @@
             <Card
                 {value}
                 selected={selectedCard === value}
-                on:click={onSelectCard}
+                on:click={async (event) => await vote(roomId, event.detail)}
             />
         {/each}
     </div>
     <div class="flex">
         <div class="text-white text-lg mx-auto">
-            {name}
+            <NameInput
+                {name}
+                on:nameChanged={async (n) => {
+                    name = n.detail;
+                    await changeName(roomId, uid, name);
+                }}
+            />
         </div>
     </div>
 </div>

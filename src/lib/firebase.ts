@@ -7,7 +7,8 @@ import {
     orderByChild, query,
     equalTo,
     onDisconnect,
-    update
+    update,
+    type Unsubscribe
 } from "firebase/database";
 import { getAuth, signInAnonymously, connectAuthEmulator } from "firebase/auth";
 
@@ -42,17 +43,19 @@ export async function createRoom(): Promise<string> {
     var uid = await getUserId();
     var room = await push(ref(database, 'rooms'), {
         owner: uid,
-        reveal: false
+        reveal: false,
+        players: {}
     });
+    
     return room.key;
 }
 
 export async function joinRoom(roomId: string, playerName: string): Promise<void> {
+    console.log("Joining room " + roomId);
     var uid = await getUserId();
-    const playerRef = ref(database, `players/${uid}`);
+    const playerRef = ref(database, `rooms/${roomId}/players/${uid}`);
     await set(playerRef, {
         userId: uid,
-        roomId: roomId,
         name: playerName,
         voted: false
     });
@@ -60,34 +63,18 @@ export async function joinRoom(roomId: string, playerName: string): Promise<void
     onDisconnect(playerRef).remove();
 }
 
-var unSubscriptions = [];
-export async function subscribeTo(roomId: string,
-    onRoomChanged: (room: any) => void,
-    onPlayerChanged: (player: any) => void) {
+export function subscribeTo(roomId: string,
+    onRoomChanged: (room: Room) => void): Unsubscribe {
 
     const roomRef = ref(database, `rooms/${roomId}`);
-    var roomUnsub = onValue(roomRef, (snapshot) => {
+    return onValue(roomRef, (snapshot) => {
         onRoomChanged(snapshot.val());
     });
-
-    var roomPlayersRef = query(ref(database, `players`),
-         orderByChild('roomId'), equalTo(roomId));
-    var playerUnsub = onValue(roomPlayersRef, (snapshot) => {
-        var players = Object.values(snapshot.val());
-        onPlayerChanged(players);
-    });
-
-    unSubscriptions.push(roomUnsub);
-    unSubscriptions.push(playerUnsub);
 }
 
-export function unsubscribe() {
-    unSubscriptions.forEach(unSub => unSub());
-}
-
-export async function vote(vote: string) {
+export async function vote(roomId: string, vote: string) {
     var uid = await getUserId();
-    const playerRef = ref(database, `players/${uid}`);
+    const playerRef = ref(database, `rooms/${roomId}/players/${uid}`);
     await update(playerRef, {
         voted: true,
         vote: vote
@@ -105,8 +92,28 @@ export async function startNewGame(roomId: string, players: any[]) {
     const updates = {};
     updates[`rooms/${roomId}/reveal`] = false;
     players.forEach(player => {
-        updates[`players/${player.userId}/voted`] = false;
-        updates[`players/${player.userId}/vote`] = null;
+        updates[`rooms/${roomId}/players/${player.userId}/voted`] = false;
+        updates[`rooms/${roomId}/players/${player.userId}/vote`] = null;
     });
     await update(ref(database), updates);
+}
+
+export async function changeName(roomId: string, 
+    userId: string, playerName: string) {
+    await update(ref(database, `rooms/${roomId}/players/${userId}`), {
+        name: playerName
+    });
+}
+
+export type Room = {
+    owner: string,
+    reveal: boolean,
+    players: {
+        [key: string]: {
+            userId: string,
+            name: string,
+            voted: boolean,
+            vote: string
+        }
+    }
 }
