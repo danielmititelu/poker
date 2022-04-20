@@ -23,6 +23,7 @@
     let reveal = false;
     let selectedCard = null;
     let players = [];
+    let isOwner = false;
 
     async function onRoomChange(room: Room) {
         if (!room || !room.players) {
@@ -33,9 +34,13 @@
             uid = await getUserId();
         }
 
+        if(room.owner === uid) {
+            isOwner = true;
+        }
+
         var p = [];
         Object.values(room.players).forEach((player) => {
-            if (player.userId === uid) {
+            if (player.uid === uid) {
                 selectedCard = player.voted ? player.vote : null;
             }
             p.push(player);
@@ -76,7 +81,7 @@
         {/each}
     </div>
     <div class="flex mb-2">
-        {#if reveal}
+        {#if reveal && isOwner}
             <Button
                 class="mx-auto"
                 disabled={false}
@@ -84,7 +89,7 @@
             >
                 Start new game
             </Button>
-        {:else}
+        {:else if isOwner}
             <Button
                 class="mx-auto"
                 disabled={false}

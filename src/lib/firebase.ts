@@ -55,7 +55,7 @@ export async function joinRoom(roomId: string, playerName: string): Promise<void
     var uid = await getUserId();
     const playerRef = ref(database, `rooms/${roomId}/players/${uid}`);
     await set(playerRef, {
-        userId: uid,
+        uid: uid,
         name: playerName,
         voted: false
     });
@@ -88,19 +88,19 @@ export async function revealCards(roomId: string) {
     });
 }
 
-export async function startNewGame(roomId: string, players: any[]) {
+export async function startNewGame(roomId: string, players: Player[]) {
     const updates = {};
     updates[`rooms/${roomId}/reveal`] = false;
     players.forEach(player => {
-        updates[`rooms/${roomId}/players/${player.userId}/voted`] = false;
-        updates[`rooms/${roomId}/players/${player.userId}/vote`] = null;
+        updates[`rooms/${roomId}/players/${player.uid}/voted`] = false;
+        updates[`rooms/${roomId}/players/${player.uid}/vote`] = null;
     });
     await update(ref(database), updates);
 }
 
 export async function changeName(roomId: string, 
-    userId: string, playerName: string) {
-    await update(ref(database, `rooms/${roomId}/players/${userId}`), {
+    uid: string, playerName: string) {
+    await update(ref(database, `rooms/${roomId}/players/${uid}`), {
         name: playerName
     });
 }
@@ -109,11 +109,13 @@ export type Room = {
     owner: string,
     reveal: boolean,
     players: {
-        [key: string]: {
-            userId: string,
-            name: string,
-            voted: boolean,
-            vote: string
-        }
+        [key: string]: Player
     }
+}
+
+export type Player = {
+    uid: string,
+    name: string,
+    voted: boolean,
+    vote: string
 }
