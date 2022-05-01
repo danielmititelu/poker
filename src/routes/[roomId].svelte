@@ -14,11 +14,11 @@
         type Room,
     } from "../lib/firebase";
     import { onDestroy, onMount } from "svelte";
-    import { playerName } from "../lib/stores";
     import type { Unsubscribe } from "firebase/database";
+    import { GetSavedPlayerName, SavePlayerName } from "$lib/storages";
 
     let roomId = $page.params.roomId;
-    let name = $playerName;
+    let name = "";
     let uid = null;
     let reveal = false;
     let selectedCard = null;
@@ -34,7 +34,7 @@
             uid = await getUserId();
         }
 
-        if(room.owner === uid) {
+        if (room.owner === uid) {
             isOwner = true;
         }
 
@@ -49,14 +49,20 @@
         players = p;
     }
 
+    async function onNameChange(name: string) {
+        SavePlayerName(name);
+        await changeName(roomId, uid, name);
+    }
+
     let unsubscribe: Unsubscribe;
     onMount(async () => {
+        name = GetSavedPlayerName();
+        await joinRoom(roomId, name);
         unsubscribe = subscribeTo(roomId, onRoomChange);
-        await joinRoom(roomId, $playerName);
     });
 
     onDestroy(() => {
-        if(unsubscribe) {
+        if (unsubscribe) {
             unsubscribe();
         }
     });
@@ -111,13 +117,7 @@
     </div>
     <div class="flex">
         <div class="text-white text-lg mx-auto">
-            <NameInput
-                {name}
-                on:nameChanged={async (n) => {
-                    name = n.detail;
-                    await changeName(roomId, uid, name);
-                }}
-            />
+            <NameInput {name} on:nameChanged={(e) => onNameChange(e.detail)} />
         </div>
     </div>
 </div>

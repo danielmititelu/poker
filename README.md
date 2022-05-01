@@ -2,5 +2,15 @@
 
 A simple game of planning poker (or scrum poker)
 
-This project is currently in design phase
+## To run locally
 
+Start the firebase emulators  
+```
+firebase emulators:start
+
+```
+
+Start the dev environment
+```
+npm run dev -- --open
+```
