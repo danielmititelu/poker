@@ -1,6 +1,5 @@
 <script lang="ts">
     import Button from "$lib/components/Button.svelte";
-    import Card from "$lib/components/Card.svelte";
     import NameInput from "$lib/components/NameInput.svelte";
     import { page } from "$app/stores";
     import {
@@ -16,6 +15,7 @@
     import { onDestroy, onMount } from "svelte";
     import type { Unsubscribe } from "firebase/database";
     import { GetSavedPlayerName, SavePlayerName } from "$lib/storages";
+    import Cards from "$lib/components/Cards.svelte";
 
     let roomId = $page.params.roomId;
     let name = "";
@@ -68,10 +68,10 @@
     });
 </script>
 
-<div class="min-h-screen bg-slate-900 pt-4">
+<div class="flex flex-col lg:mx-40 md:mx-36 sm:mx-10 mx-5">
     <div
         class="container outline-dashed mx-auto
-                mb-2"
+                mb-2 min-h-[120px] "
     >
         {#each players as player}
             <div class="text-white ml-2 flex ">
@@ -86,10 +86,9 @@
             </div>
         {/each}
     </div>
-    <div class="flex mb-2">
+    <div class="mb-2 flex mx-auto">
         {#if reveal && isOwner}
             <Button
-                class="mx-auto"
                 disabled={false}
                 on:click={async () => await startNewGame(roomId, players)}
             >
@@ -97,7 +96,6 @@
             </Button>
         {:else if isOwner}
             <Button
-                class="mx-auto"
                 disabled={false}
                 on:click={async () => await revealCards(roomId)}
             >
@@ -106,25 +104,10 @@
         {/if}
     </div>
 
-    <div class="container outline-dashed flex m-auto">
-        {#each ["1", "2", "3", "5", "7"] as value}
-            <Card
-                {value}
-                selected={selectedCard === value}
-                on:click={async (event) => await vote(roomId, event.detail)}
-            />
-        {/each}
-    </div>
-    <div class="flex">
-        <div class="text-white text-lg mx-auto">
-            <NameInput {name} on:nameChanged={(e) => onNameChange(e.detail)} />
-        </div>
-    </div>
+    <Cards
+        {selectedCard}
+        availableCards={["1", "2", "3", "5", "8"]}
+        on:selectCard={async (e) => await vote(roomId, e.detail)}
+    />
+    <NameInput {name} on:nameChanged={(e) => onNameChange(e.detail)} />
 </div>
-
-<style>
-    .container {
-        height: 120px;
-        width: 300px;
-    }
-</style>

@@ -5,8 +5,8 @@
     export let selected: boolean;
     const dispatch = createEventDispatcher();
 
-     function onClick() {
-        dispatch('click', value);
+     function onSelectCard() {
+        dispatch('selectCard', value);
     }
 </script>
 
@@ -15,7 +15,7 @@
             hover:bg-slate-300 mouse
             cursor-pointer rounded-md" 
             class:selected
-            on:click={() => onClick()}>
+            on:click={() => onSelectCard()}>
     {value}
 </div>
 

@@ -18,8 +18,7 @@
         dispatch("nameChanged", name);
     }
 </script>
-
-<div class="flex mt-2">
+<div class="flex mt-2 text-white text-lg mx-auto">
     {#if editing}
         <input
             class="mr-1"
