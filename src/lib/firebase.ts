@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import {
     getDatabase,
     connectDatabaseEmulator,
-    set, ref, push, onValue, 
+    set, ref, push, onValue,
     onDisconnect,
     update,
     type Unsubscribe
@@ -11,14 +11,14 @@ import {
 import { getAuth, signInAnonymously, connectAuthEmulator } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyA_6f2l7spzdFUDPgYjtHC_idN7MOrjMD8",
-    authDomain: "poker-e8079.firebaseapp.com",
-    databaseURL: "https://poker-e8079-default-rtdb.europe-west1.firebasedatabase.app/",
-    projectId: "poker-e8079",
-    storageBucket: "poker-e8079.appspot.com",
-    messagingSenderId: "934861521350",
-    appId: "1:934861521350:web:f8a034319635d5a799f2c7",
-    measurementId: "G-S0R6MQN23T",
+    apiKey: "AIzaSyDE4JQ7kpAJ4Uh0Kr2XTYjgr90RtTvBVAo",
+    authDomain: "poker-for-planning.firebaseapp.com",
+    databaseURL: "https://poker-for-planning-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "poker-for-planning",
+    storageBucket: "poker-for-planning.appspot.com",
+    messagingSenderId: "437365859197",
+    appId: "1:437365859197:web:0fa597dfcde85c5a736214",
+    measurementId: "G-DK030PNWDE"
 };
 
 // Initialize Firebase
@@ -44,7 +44,7 @@ export async function createRoom(): Promise<string> {
         reveal: false,
         players: {}
     });
-    
+
     return room.key;
 }
 
@@ -96,7 +96,7 @@ export async function startNewGame(roomId: string, players: Player[]) {
     await update(ref(database), updates);
 }
 
-export async function changeName(roomId: string, 
+export async function changeName(roomId: string,
     uid: string, playerName: string) {
     await update(ref(database, `rooms/${roomId}/players/${uid}`), {
         name: playerName

@@ -27,12 +27,10 @@
     });
 </script>
 
-    <div class="mx-auto w-3/6 text-center">
-        <div>
-            <h3 class="mb-1">Enter your name:</h3>
-            <input on:keypress={onKeyPress} bind:value={name} />
-        </div>
-        <Button disabled={name == ""} on:click={onCreateRoom}
-            >Create room</Button
-        >
+<div class="mx-auto w-3/6 text-center">
+    <div>
+        <h3 class="mb-1">Enter your name:</h3>
+        <input on:keypress={onKeyPress} bind:value={name} />
     </div>
+    <Button disabled={name == ""} on:click={onCreateRoom}>Create room</Button>
+</div>
