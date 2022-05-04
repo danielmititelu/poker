@@ -6,11 +6,14 @@
     import { onMount } from "svelte";
 
     let name = "";
+    let loading = false;
     async function onCreateRoom() {
         if (name == "") {
             alert("Please enter a name");
             return;
         }
+
+        loading = true;
         SavePlayerName(name);
         var roomId = await createRoom();
         goto(`${roomId}`);
@@ -32,5 +35,8 @@
         <h3 class="mb-1">Enter your name:</h3>
         <input on:keypress={onKeyPress} bind:value={name} />
     </div>
-    <Button disabled={name == ""} on:click={onCreateRoom}>Create room</Button>
+    <Button {loading} disabled={name == ""} on:click={onCreateRoom}
+        >Create room
+    </Button>
+    
 </div>
