@@ -9,6 +9,7 @@ import {
     type Unsubscribe
 } from "firebase/database";
 import { getAuth, signInAnonymously, connectAuthEmulator } from "firebase/auth";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDE4JQ7kpAJ4Uh0Kr2XTYjgr90RtTvBVAo",
@@ -23,7 +24,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-// const analytics = getAnalytics(app);
+const analytics = getAnalytics(app);
 
 // Initialize authentication
 const auth = getAuth(app);
