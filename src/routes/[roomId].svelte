@@ -68,10 +68,10 @@
     });
 </script>
 
-<div class="flex flex-col lg:mx-40 md:mx-36 sm:mx-10 mx-5">
+<div class="flex flex-col items-center gap-3 lg:mx-40 md:mx-36 sm:mx-10 mx-5">
     <div
-        class="container outline-dashed mx-auto
-                mb-2 min-h-[120px] "
+        class="container outline-dashed
+                min-h-[120px] "
     >
         {#each players as player}
             <div class="text-white ml-2 flex ">
@@ -86,7 +86,7 @@
             </div>
         {/each}
     </div>
-    <div class="mb-2 flex mx-auto">
+    <div>
         {#if reveal && isOwner}
             <Button
                 disabled={false}

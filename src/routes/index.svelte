@@ -35,8 +35,7 @@
         <h3 class="mb-1">Enter your name:</h3>
         <input on:keypress={onKeyPress} bind:value={name} />
     </div>
-    <Button {loading} disabled={name == ""} on:click={onCreateRoom}
-        >Create room
+    <Button class="mt-2" {loading} disabled={name == ""} on:click={onCreateRoom}>
+        Create room
     </Button>
-    
 </div>

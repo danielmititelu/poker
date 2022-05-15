@@ -1,4 +1,3 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import {
     getDatabase,
@@ -8,8 +7,8 @@ import {
     update,
     type Unsubscribe
 } from "firebase/database";
-import { getAuth, signInAnonymously, connectAuthEmulator } from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
+import { getAuth, signInAnonymously, connectAuthEmulator, type Auth } from "firebase/auth";
+import { getAnalytics, type Analytics } from "firebase/analytics";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDE4JQ7kpAJ4Uh0Kr2XTYjgr90RtTvBVAo",
@@ -22,16 +21,25 @@ const firebaseConfig = {
     measurementId: "G-DK030PNWDE"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-// Initialize authentication
 const auth = getAuth(app);
 const database = getDatabase(app);
+let analytics: Analytics;
+let initialized = false;
 
-// connectDatabaseEmulator(database, "localhost", 9000);
-// connectAuthEmulator(auth, "http://localhost:9099");
+export async function initializeFirebase() {
+    if(window.location.hostname !== "localhost" && !analytics) {
+        analytics = getAnalytics(app);
+        console.log("Configured analytics");
+    }
+
+    if (window.location.hostname === "localhost" && !initialized) {
+        connectDatabaseEmulator(database, "localhost", 9000);
+        connectAuthEmulator(auth, "http://localhost:9099");
+        console.log("Connected to firebase emulators");
+        initialized = true;
+    }
+}
 
 export async function getUserId() {
     var userCredentials = await signInAnonymously(auth);
@@ -50,7 +58,7 @@ export async function createRoom(): Promise<string> {
 }
 
 export async function joinRoom(roomId: string, playerName: string): Promise<void> {
-    console.log("Joining room " + roomId);
+
     var uid = await getUserId();
     const playerRef = ref(database, `rooms/${roomId}/players/${uid}`);
     await set(playerRef, {

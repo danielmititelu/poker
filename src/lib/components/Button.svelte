@@ -22,7 +22,7 @@
     class:loading
     class="font-bold
           py-2 px-4 rounded
-          mt-2 {className ? className : ''}"
+          {className ? className : ''}"
     on:click={onClick}
 >
     <div class="flex items-center">
